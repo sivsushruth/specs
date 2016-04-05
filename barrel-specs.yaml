@@ -1,0 +1,472 @@
+---
+swagger: '2.0'
+info:
+  version: 1.15.0
+  title: Barrel-DB
+  description: Barrel-DB API
+
+# TODO Comment out the host once done
+host: "localhost:5984"
+
+###############################################################################
+# Barrel-DB API
+###############################################################################
+
+paths:
+
+##################
+# Root Operations
+##################
+  /:
+    get:
+      description: |
+        Retrieves the Welcome information about this node.
+      operationId: get_welcome
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Welcome information.
+          schema:
+            $ref: '#/definitions/Welcome'
+            
+  /_active_tasks:
+    get:
+      description: |
+        Retrieves the list of active tasks.
+      operationId: get_active_tasks
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Array of task names.
+          schema:
+            type: array
+            items:
+              type: string
+
+  /_all_dbs:
+    get:
+      description: |
+        Retrieves the list of database names.
+      operationId: get_all_dbs
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Array of database names.
+          schema:
+            type: array
+            items:
+              type: string
+
+  /_config:
+    get:
+      description: |
+        Retrieves the configuration.
+      operationId: get_config
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Configuration object.
+          schema:
+            type: object
+
+  /_db_updates:
+    get:
+      description: |
+        Retrieves the latest database change.
+      operationId: get_db_updates
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Database update event object.
+          schema:
+            type: object
+
+  /_log:
+    get:
+      description: |
+        Tails the main log file.
+      operationId: get_log
+      produces:
+        - text/plain
+      responses:
+        200:
+          description: Current log.
+
+  /_oauth:
+    get:
+      description: |
+        Not sure what it does since it's failing on get.
+      operationId: get_oauth
+      produces:
+        - text/plain
+      responses:
+        200:
+          description: |
+            **TODO** No idea ...
+
+  /_replicate:
+    post:
+      description: |
+        **TODO** Manipulate replication jobs.
+      operationId: post_replicate
+      produces:
+        - application/json
+      responses:
+        200:
+          description: |
+            **TODO** No idea
+
+  /_restart:
+    post:
+      description: |
+        **TODO** Probably restart the server.
+      operationId: post_restart
+      produces:
+        - application/json
+      responses:
+        200:
+          description: |
+            **TODO** No idea ...
+
+  /_session:
+    get:
+      description: |
+        **TODO** I suppose the user session. Need tsome details here.
+      operationId: get_session
+      produces:
+        - application/json
+      responses:
+        200:
+          description: |
+            **TODO** Looks like a user context
+          schema:
+            type: object
+            properties:
+              ok:
+                type: boolean
+              userCtx:
+                $ref: '#/definitions/UserContext'
+              info:
+                $ref: '#/definitions/SessionInfo'
+
+  /_stats:
+    get:
+      description: |
+        Platform Statistics.
+      operationId: get_stats
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Statistics data.
+          schema:
+            $ref: '#/definitions/PlatformStatistics'
+
+  /_uuids:
+    get:
+      description: |
+        Generate a UUID.
+      operationId: get_uuids
+      produces:
+        - application/json
+      responses:
+        200:
+          description: UUIDs
+          schema:
+            type: object
+            properties:
+              uuids:
+                type: array
+                items:
+                  type: string
+
+
+######################
+# Database Operations
+######################
+  /{dbName}:
+    parameters:
+      - name: dbName
+        in: path
+        description: Database Name
+        type: string
+        required: true
+    get:
+      operationId: get_db_info
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Database information.
+          schema:
+            $ref: '#/definitions/DbInfo'
+        default:
+          description: Database doesn't exist.
+          schema:
+            $ref: '#/definitions/Error'
+  /{dbName}/_all_docs:
+    parameters:
+      - name: dbName
+        in: path
+        description: Database Name
+        type: string
+        required: true
+    get:
+      operationId: get_db_all_docs
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Db all docs.
+          schema:
+            $ref: '#/definitions/DbAllDocs'
+        default:
+          description: Database doesn't exist.
+          schema:
+            $ref: '#/definitions/Error'
+
+######################
+# Document Operations
+######################
+  /{dbName}/{docId}:
+    parameters:
+      - name: dbName
+        in: path
+        description: Database Name
+        type: string
+        required: true
+      - name: docId
+        in: path
+        description: Document Id
+        type: string
+        required: true
+    get:
+      operationId: get_doc
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Document.
+          schema:
+            $ref: '#/definitions/Document'
+        default:
+          description: Document doesn't exist.
+          schema:
+            $ref: '#/definitions/Error'
+
+
+definitions:
+  Welcome:
+    type: object
+    properties:
+      couchdb:
+        type: string
+        description: Welcome string, always set to "Welcome".
+      uuid:
+        type: string
+        description: Unique node id.
+      version:
+        type: string
+        description: Couchdb core version number.
+      vendor:
+        $ref: '#/definitions/Vendor'
+  Vendor:
+    type: object
+    properties:
+      name:
+        type: string
+        description: Vendor name.
+      version:
+        type: string
+        description: Vendor version.
+  DbInfo:
+    type: object
+    properties:
+      db_name:
+        type: string
+        description: The name of the database.
+      doc_count:
+        type: integer
+        description: Number of documents present in the database.
+      doc_del_count:
+        type: integer
+      update_seq:
+        type: integer
+      purge_seq:
+        type: integer
+      compact_running:
+        type: boolean
+      disk_size:
+        type: integer
+      data_size:
+        type: integer
+      instance_start_time:
+        type: string
+      disk_format_version:
+        type: integer
+      committed_update_seq:
+        type: integer
+  DbAllDocs:
+    type: object
+    properties:
+      total_rows:
+        type: integer
+      offset:
+        type: integer
+      rows:
+        type: array
+        items:
+          $ref: '#/definitions/DocRef'
+  DocRef:
+    type: object
+    properties:
+      id:
+        type: string
+      key:
+        type: string
+      value:
+        type: object
+  Document:
+    type: object
+    properties:
+      "_id":
+        type: string
+      "_rev":
+        type: string
+    additionalProperties:
+      type: string
+  UserContext:
+    type: object
+    properties:
+      name:
+        type: string
+      roles:
+        type: array
+        items:
+          type: string
+  SessionInfo:
+    type: object
+    properties:
+      authentication_db:
+        type: string
+      authentication_handlers:
+        type: array
+        items:
+          type: string
+      authenticated:
+        type: string
+  StatData:
+    type: object
+    properties:
+      description:
+        type: string
+      current:
+        type: number
+      sum:
+        type: number
+      mean:
+        type: number
+      stddev:
+        type: number
+      min:
+        type: number
+      max:
+        type: number
+  PlatformStatistics:
+    type: object
+    properties:
+      httpd_request_methods:
+        $ref: '#/definitions/HttpMethodStats'
+      couchdb:
+        $ref: '#/definitions/CouchdbStats'
+      httpd_status_codes:
+        $ref: '#/definitions/HttpStatusCodeStats'
+      httpd:
+        $ref: '#/definitions/HttpdStats'
+  HttpMethodStats:
+    type: object
+    properties:
+      DELETE:
+        $ref: '#/definitions/StatData'
+      COPY:
+        $ref: '#/definitions/StatData'
+      HEAD:
+        $ref: '#/definitions/StatData'
+      POST:
+        $ref: '#/definitions/StatData'
+      GET:
+        $ref: '#/definitions/StatData'
+      PUT:
+        $ref: '#/definitions/StatData'
+  CouchdbStats:
+    type: object
+    properties:
+      database_writes:
+        $ref: '#/definitions/StatData'
+      auth_cache_hits:
+        $ref: '#/definitions/StatData'
+      auth_cache_misses:
+        $ref: '#/definitions/StatData'
+      open_databases:
+        $ref: '#/definitions/StatData'
+      open_os_files:
+        $ref: '#/definitions/StatData'
+      request_time:
+        $ref: '#/definitions/StatData'
+      database_reads:
+        $ref: '#/definitions/StatData'
+  HttpStatusCodeStats:
+    type: object
+    properties:
+      200:
+        $ref: '#/definitions/StatData'
+      201:
+        $ref: '#/definitions/StatData'
+      202:
+        $ref: '#/definitions/StatData'
+      301:
+        $ref: '#/definitions/StatData'
+      304:
+        $ref: '#/definitions/StatData'
+      400:
+        $ref: '#/definitions/StatData'
+      401:
+        $ref: '#/definitions/StatData'
+      403:
+        $ref: '#/definitions/StatData'
+      404:
+        $ref: '#/definitions/StatData'
+      405:
+        $ref: '#/definitions/StatData'
+      409:
+        $ref: '#/definitions/StatData'
+      412:
+        $ref: '#/definitions/StatData'
+      500:
+        $ref: '#/definitions/StatData'
+  HttpdStats:
+    type: object
+    properties:
+      requests:
+        $ref: '#/definitions/StatData'
+      view_reads:
+        $ref: '#/definitions/StatData'
+      bulk_requests:
+        $ref: '#/definitions/StatData'
+      temporary_view_reads:
+        $ref: '#/definitions/StatData'
+      clients_requesting_changes:
+        $ref: '#/definitions/StatData'
+  Error:
+    type: object
+    properties:
+      error:
+        type: string
+      reason:
+        type: string
+      
